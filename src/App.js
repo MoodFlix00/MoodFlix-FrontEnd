@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaHome, FaSearch, FaPlus, FaCalendarAlt } from 'react-icons/fa';
+import KakaoLogin from './KakaoLogin'; // 경로 조정하세요
 import './App.css';
 
 const newMovies = [
@@ -24,10 +25,31 @@ const popularMovies = [
 ];
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const jwt = localStorage.getItem('jwt');
+    const storedUser = localStorage.getItem('user');
+    if (jwt && storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
   return (
     <div className="main-layout soft-bg">
       {/* 좌측 세로 네비게이션 */}
-      <aside className="side-nav soft-nav" role="navigation" aria-label="Main navigation">
+      <aside className="side-nav soft-nav" role="navigation" aria-label="Main navigation" style={{display: 'flex', flexDirection: 'column'}}>
         <img src="/MoodFlix (Logo).png" alt="MoodFLIX Logo" className="nav-logo-img" />
         <nav className="icon-nav">
           <button className="nav-icon" aria-label="Home"><FaHome /></button>
@@ -35,7 +57,38 @@ function App() {
           <button className="nav-icon" aria-label="Add content"><FaPlus /></button>
           <button className="nav-icon" aria-label="Calendar"><FaCalendarAlt /></button>
         </nav>
+
+        {/* 로그인 상태 UI */}
+        <div style={{ marginTop: 'auto', padding: '20px', textAlign: 'center' }}>
+          {user ? (
+            <div>
+              <img
+                src={user.profileImage}
+                alt="Profile"
+                style={{ width: 50, height: 50, borderRadius: '50%', marginBottom: '10px' }}
+              />
+              <p style={{ margin: 0 }}>{user.nickname}님</p>
+              <button
+                onClick={handleLogout}
+                style={{
+                  marginTop: '10px',
+                  padding: '6px 12px',
+                  fontSize: '0.8rem',
+                  background: '#fae100',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
+              >
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <KakaoLogin onLogin={handleLogin} />
+          )}
+        </div>
       </aside>
+
       {/* 우측 메인 컨텐츠 */}
       <main className="main-content soft-main">
         {/* 배너 */}
